@@ -1489,6 +1489,7 @@ _CLICK_SUBCOMMANDS: frozenset[str] = frozenset(
         "server",
         "setup",
         "stop",
+        "tui",
         "uninstall",
         "update",
         "upgrade",

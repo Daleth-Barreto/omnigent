@@ -150,3 +150,9 @@ class OmnigentTUI(App[None]):
             import threading
             threading.Thread(target=_worker, daemon=True).start()
 
+
+def run_tui(server_url: str = "http://127.0.0.1:6767") -> None:
+    """Launch the universal interactive TUI."""
+    app = OmnigentTUI(server_url=server_url)
+    app.run()
+
