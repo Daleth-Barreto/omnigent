@@ -16,9 +16,11 @@ def main() -> None:
     )
     try:
         config = TelegramConfig()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logging.error("Failed to load Telegram bot configuration: %s", exc)
-        logging.error("Please set TELEGRAM_BOT_TOKEN environment variable or check your .env file.")
+        logging.error(
+            "Please set TELEGRAM_BOT_TOKEN environment variable or check your .env file."
+        )
         sys.exit(1)
 
     bot = OmnigentTelegramBot(config)
@@ -26,7 +28,7 @@ def main() -> None:
         asyncio.run(bot.start())
     except KeyboardInterrupt:
         logging.info("Telegram Bot shut down cleanly by user.")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logging.critical("Fatal error running Telegram Bot: %s", exc)
         sys.exit(1)
 

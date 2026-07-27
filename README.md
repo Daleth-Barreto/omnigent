@@ -84,6 +84,7 @@ Available user-facing extras include:
   `openshell`, `kubernetes`
 - **SDK harnesses:** `antigravity`, `copilot`, `cursor`, `agents-sdk`
 - **Storage and memory:** `s3`, `hindsight`
+- **Integrations:** `telegram`, `slack`
 
 </details>
 

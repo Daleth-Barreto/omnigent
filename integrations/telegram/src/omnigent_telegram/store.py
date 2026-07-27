@@ -5,7 +5,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import aiosqlite
 
@@ -13,6 +12,7 @@ import aiosqlite
 @dataclass(frozen=True, slots=True)
 class ChatThreadKey:
     """Unique key identifying a Telegram chat and optional message topic thread."""
+
     chat_id: int
     thread_id: int = 0
 
@@ -20,10 +20,11 @@ class ChatThreadKey:
 @dataclass(frozen=True, slots=True)
 class SessionRecord:
     """Record of an active Omnigent session mapped to a Telegram chat/thread."""
+
     session_id: str
-    owner_user_id: Optional[str] = None
-    host_id: Optional[str] = None
-    workspace: Optional[str] = None
+    owner_user_id: str | None = None
+    host_id: str | None = None
+    workspace: str | None = None
 
 
 class TelegramSQLiteStore:
@@ -54,7 +55,7 @@ class TelegramSQLiteStore:
             )
             await db.commit()
 
-    async def get_session(self, key: ChatThreadKey) -> Optional[SessionRecord]:
+    async def get_session(self, key: ChatThreadKey) -> SessionRecord | None:
         async with aiosqlite.connect(self._path) as db:
             cursor = await db.execute(
                 """
@@ -81,9 +82,9 @@ class TelegramSQLiteStore:
         session_id: str,
         title: str,
         *,
-        owner_user_id: Optional[str] = None,
-        host_id: Optional[str] = None,
-        workspace: Optional[str] = None,
+        owner_user_id: str | None = None,
+        host_id: str | None = None,
+        workspace: str | None = None,
     ) -> None:
         now = int(time.time())
         async with aiosqlite.connect(self._path) as db:
@@ -98,7 +99,9 @@ class TelegramSQLiteStore:
                 ON CONFLICT(chat_id, thread_id) DO UPDATE SET
                     omnigent_session_id = excluded.omnigent_session_id,
                     title = excluded.title,
-                    owner_user_id = COALESCE(excluded.owner_user_id, telegram_sessions.owner_user_id),
+                    owner_user_id = COALESCE(
+                        excluded.owner_user_id, telegram_sessions.owner_user_id
+                    ),
                     host_id = COALESCE(excluded.host_id, telegram_sessions.host_id),
                     workspace = COALESCE(excluded.workspace, telegram_sessions.workspace),
                     updated_at = excluded.updated_at

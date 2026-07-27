@@ -48,6 +48,11 @@ from omnigent.cli_native import register_native_commands as _register_native_com
 from omnigent.cli_sandbox import lakebox as _lakebox_alias_group
 from omnigent.cli_sandbox import sandbox as _sandbox_group
 from omnigent.cli_skill import skill as _skill_group
+
+try:
+    from omnigent_telegram.cli import telegram_cli as _telegram_group
+except ImportError:
+    _telegram_group = None
 from omnigent.config import (
     _merge_effective_config,
     global_config_path,
@@ -8430,6 +8435,10 @@ if _sandbox_providers():
 
 # ─── skill group ──────────────────────────────────────────────────
 cli.add_command(_skill_group)
+
+# ─── telegram group ─────────────────────────────────────────────────
+if _telegram_group is not None:
+    cli.add_command(_telegram_group, name="telegram")
 
 # ─── debug group ──────────────────────────────────────────────────
 #

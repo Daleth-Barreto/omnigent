@@ -1,8 +1,8 @@
 """Unit tests for TelegramSQLiteStore."""
 
 from pathlib import Path
-import pytest
 
+import pytest
 from omnigent_telegram.store import ChatThreadKey, TelegramSQLiteStore
 
 
