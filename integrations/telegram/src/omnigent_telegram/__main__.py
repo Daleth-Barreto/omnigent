@@ -1,6 +1,5 @@
 """Entry point for running the Omnigent Telegram Bot."""
 
-import asyncio
 import logging
 import sys
 
