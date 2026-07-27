@@ -1413,7 +1413,7 @@ def _extract_global_logging_flags(argv: list[str]) -> tuple[list[str], bool, boo
     return remaining, debug_logging, log_to_stderr
 
 
-@click.group(cls=_OmnigentCLI)
+@click.group(cls=_OmnigentCLI, invoke_without_command=True)
 @click.option(
     "--debug",
     "debug_logging",
@@ -1439,8 +1439,16 @@ def _extract_global_logging_flags(argv: list[str]) -> tuple[list[str], bool, boo
     is_eager=True,
     help="Show the version and exit.",
 )
-def cli() -> None:
+@click.pass_context
+def cli(ctx: click.Context) -> None:
     """Omnigent CLI."""
+    if ctx.invoked_subcommand is None:
+        try:
+            from omnigent.tui.app import run_tui
+            run_tui(server_url="http://127.0.0.1:6767")
+        except Exception as exc:
+            click.echo(f"Error launching interactive TUI: {exc}\n")
+            click.echo(ctx.get_help())
 
 
 # Names of every subcommand the click group owns. Used by
@@ -8072,20 +8080,106 @@ def _slack_daemon() -> IntegrationDaemon:
     return IntegrationDaemon("slack", _integration_state_dir())
 
 
+def _interactive_manage_integrations() -> None:
+    """Helper to interactively select integrations to install or uninstall from console."""
+    from omnigent.extras_manager import get_catalog, is_installed, run_installer
+    catalog = get_catalog()
+    click.echo("\n--- Gestor Interactivo de Integraciones y Extras Omnigent ---\n")
+    for i, extra in enumerate(catalog, 1):
+        status = " [VERDE - INSTALADO]" if is_installed(extra) else " [AMARILLO - NO INSTALADO]"
+        click.echo(f"  {i}) {extra.name.ljust(10)} - {extra.title}{status}")
+    click.echo(f"  {len(catalog)+1}) Instalar TODOS los extras oficiales")
+    click.echo(f"  0) Salir / Cancelar\n")
+
+    choice = click.prompt("Selecciona una opción (número)", type=int, default=0)
+    if choice == 0 or choice > len(catalog) + 1:
+        click.echo("Operación cancelada.")
+        return
+
+    if choice == len(catalog) + 1:
+        for extra in catalog:
+            click.echo(f"\nInstalando '{extra.name}'...")
+            run_installer(extra.name, stream_callback=lambda msg: click.echo(msg, nl=False))
+        return
+
+    selected_extra = catalog[choice - 1]
+    installed = is_installed(selected_extra)
+    action = click.prompt(
+        f"\n¿Deseas {'DESINSTALAR' if installed else 'INSTALAR'} '{selected_extra.name}'? [Y/n]",
+        default="Y",
+        show_default=False,
+    )
+    if action.upper().startswith("Y"):
+        run_installer(
+            selected_extra.name,
+            uninstall=installed,
+            stream_callback=lambda msg: click.echo(msg, nl=False),
+        )
+
+
 @cli.group("integration", invoke_without_command=True)
 @click.pass_context
 def integration(ctx: click.Context) -> None:
-    """Run and manage Omnigent chat integrations.
+    """Run and manage Omnigent chat integrations and extras.
 
     \b
     Available integrations:
-      slack   The @omnigent Slack socket-mode bot.
+      telegram  Telegram bot integration.
+      slack     The @omnigent Slack socket-mode bot.
 
-    Run ``omni integration slack`` to start the Slack bot in the foreground,
-    or ``omni integration slack --background`` to run it in the background.
+    Run ``omni integration`` without arguments to launch the interactive console manager.
     """
     if ctx.invoked_subcommand is None:
-        click.echo(ctx.get_help())
+        _interactive_manage_integrations()
+
+
+@integration.command("list")
+def integration_list() -> None:
+    """List all official Omnigent integrations and their installation status."""
+    from omnigent.extras_manager import get_catalog, is_installed
+    table = Table(title="Omnigent Official Integrations & Extras", box=box.ROUNDED)
+    table.add_column("Name", style="cyan", no_wrap=True)
+    table.add_column("Title", style="bold")
+    table.add_column("Status")
+    table.add_column("Description", style="dim")
+    for extra in get_catalog():
+        installed = is_installed(extra)
+        status_badge = "[bold green]INSTALLED[/bold green]" if installed else "[bold yellow]NOT INSTALLED[/bold yellow]"
+        table.add_row(extra.name, extra.title, status_badge, extra.description)
+    Console().print(table)
+
+
+@integration.command("install")
+@click.argument("name", required=False)
+@click.option("--all", "install_all", is_flag=True, help="Install all official integrations.")
+def integration_install(name: str | None, install_all: bool) -> None:
+    """Install official Omnigent integrations (e.g., telegram, slack)."""
+    from omnigent.extras_manager import get_catalog, get_extra, run_installer
+    if install_all:
+        targets = [e.name for e in get_catalog()]
+    elif name:
+        target_info = get_extra(name)
+        if not target_info:
+            raise click.ClickException(f"Unknown integration: '{name}'. Run 'omnigent integration list' to see available packages.")
+        targets = [target_info.name]
+    else:
+        _interactive_manage_integrations()
+        return
+
+    for t in targets:
+        click.echo(f"\nInstalling integration '{t}'...")
+        code, _ = run_installer(t, stream_callback=lambda msg: click.echo(msg, nl=False))
+        if code != 0:
+            raise click.ClickException(f"Failed to install integration '{t}'.")
+
+
+@integration.command("manage")
+def integration_manage() -> None:
+    """Interactively select integrations to install or uninstall from console."""
+    _interactive_manage_integrations()
+
+
+
 
 
 @integration.group("slack", invoke_without_command=True)

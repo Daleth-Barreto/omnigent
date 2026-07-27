@@ -139,3 +139,60 @@ class ElicitationModal(ModalScreen[bool]):
             self.dismiss(True)
         else:
             self.dismiss(False)
+
+
+class ExtraListItem(ListItem):
+    """List item representing an official extra/integration in the TUI."""
+
+    def __init__(self, name: str, title: str, description: str, installed: bool, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.extra_name = name
+        self.title_text = title
+        self.desc_text = description
+        self.installed = installed
+
+    def compose(self) -> ComposeResult:
+        status_color = "green" if self.installed else "yellow"
+        status_text = "INSTALLED" if self.installed else "NOT INSTALLED"
+        yield Label(f"[bold]{self.title_text}[/bold] ([bold {status_color}]{status_text}[/bold {status_color}])\n[dim]{self.desc_text}[/dim]")
+
+
+class IntegrationsPane(Container):
+    """Pane for viewing and managing official Omnigent integrations and extras."""
+
+    DEFAULT_CSS = """
+    IntegrationsPane {
+        height: 1fr;
+        border: solid $secondary;
+        background: $surface;
+        padding: 1 2;
+        display: none;
+    }
+    #extras-actions {
+        height: auto;
+        margin-top: 1;
+        margin-bottom: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Label("[bold cyan]Gestor de Integraciones & Extras Oficiales[/bold cyan]\n[dim]Selecciona una integración para ver acciones o administrar paquetes:[/dim]", id="extras-title")
+        yield ListView(id="extras-list")
+        with Horizontal(id="extras-actions"):
+            yield Button("Instalar / Actualizar Extra", variant="primary", id="btn-install-extra")
+            yield Button("Desinstalar Extra", variant="warning", id="btn-uninstall-extra")
+            yield Button("Instalar TODOS", variant="success", id="btn-install-all")
+
+    def refresh_catalog(self) -> None:
+        from omnigent.extras_manager import get_catalog, is_installed
+        list_view = self.query_one("#extras-list", ListView)
+        list_view.clear()
+        for extra in get_catalog():
+            list_view.append(ExtraListItem(name=extra.name, title=extra.title, description=extra.description, installed=is_installed(extra)))
+
+    def get_selected_extra_name(self) -> str | None:
+        list_view = self.query_one("#extras-list", ListView)
+        if list_view.highlighted_child and isinstance(list_view.highlighted_child, ExtraListItem):
+            return list_view.highlighted_child.extra_name
+        return None
+

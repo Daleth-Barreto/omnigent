@@ -12,7 +12,7 @@ from textual.containers import Horizontal
 from textual.widgets import Footer, Header
 
 from omnigent.terminals.backend import get_terminal_backend
-from omnigent.tui.views import ElicitationModal, LogsPane, SessionsSidebar, TerminalPane
+from omnigent.tui.views import ElicitationModal, IntegrationsPane, LogsPane, SessionsSidebar, TerminalPane
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,7 @@ class OmnigentTUI(App[None]):
         Binding("ctrl+s", "toggle_sidebar", "Toggle Sidebar", show=True),
         Binding("ctrl+l", "toggle_logs", "Toggle Logs", show=True),
         Binding("ctrl+n", "new_session", "New Session", show=True),
+        Binding("ctrl+i", "toggle_integrations", "Extras / Integrations", show=True),
     ]
 
     def __init__(self, server_url: str = "http://127.0.0.1:6767", **kwargs: Any) -> None:
@@ -42,6 +43,7 @@ class OmnigentTUI(App[None]):
         with Horizontal():
             yield SessionsSidebar()
             yield TerminalPane()
+            yield IntegrationsPane()
         yield LogsPane()
         yield Footer()
 
@@ -102,3 +104,49 @@ class OmnigentTUI(App[None]):
         def _show() -> None:
             self.push_screen(ElicitationModal(prompt=prompt, elicit_id=elicit_id))
         self.call_from_thread(_show)
+
+    def action_toggle_integrations(self) -> None:
+        """Toggle visibility of the Integrations/Extras manager pane vs Terminal pane."""
+        term_pane = self.query_one(TerminalPane)
+        int_pane = self.query_one(IntegrationsPane)
+        if int_pane.display:
+            int_pane.display = False
+            term_pane.display = True
+        else:
+            term_pane.display = False
+            int_pane.display = True
+            int_pane.refresh_catalog()
+            self.query_one(LogsPane).log_event("Opened Integrations & Extras Manager.")
+
+    def on_button_pressed(self, event: Any) -> None:
+        """Handle buttons pressed in the IntegrationsPane or modals."""
+        btn_id = getattr(event.button, "id", "")
+        if btn_id in ("btn-install-extra", "btn-uninstall-extra", "btn-install-all"):
+            from omnigent.extras_manager import get_catalog, run_installer
+            int_pane = self.query_one(IntegrationsPane)
+            logs = self.query_one(LogsPane)
+            if not logs.display:
+                logs.display = True
+
+            if btn_id == "btn-install-all":
+                targets = [e.name for e in get_catalog()]
+                uninstall = False
+            else:
+                selected = int_pane.get_selected_extra_name()
+                if not selected:
+                    logs.log_event("[ADVERTENCIA] Selecciona primero una integración de la lista para gestionar.")
+                    return
+                targets = [selected]
+                uninstall = (btn_id == "btn-uninstall-extra")
+
+            def _worker() -> None:
+                for t in targets:
+                    logs.log_event(f"Iniciando {'desinstalación' if uninstall else 'instalación'} de '{t}'...")
+                    def _stream(msg: str) -> None:
+                        self.call_from_thread(lambda: logs.log_event(msg.strip()))
+                    run_installer(t, uninstall=uninstall, stream_callback=_stream)
+                self.call_from_thread(lambda: int_pane.refresh_catalog())
+
+            import threading
+            threading.Thread(target=_worker, daemon=True).start()
+
