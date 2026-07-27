@@ -61,9 +61,9 @@ class OmnigentTUI(App[None]):
             # We dynamically import or mock client connect if server is offline during TUI start
             from omnigent_client import OmnigentClient
             client = OmnigentClient(base_url=self.server_url)
-            sessions = await client.list_sessions()
-            if isinstance(sessions, list):
-                self.query_one(SessionsSidebar).update_sessions(sessions)
+            sessions = await client.sessions.list()
+            if sessions:
+                self.query_one(SessionsSidebar).update_sessions(list(sessions))
                 self.query_one(LogsPane).log_event(f"Loaded {len(sessions)} active sessions from server.")
         except Exception as exc:
             self.query_one(LogsPane).log_event(f"Offline mode / server unreachable: {exc}")

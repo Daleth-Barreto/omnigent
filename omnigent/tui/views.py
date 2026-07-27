@@ -42,14 +42,19 @@ class SessionsSidebar(Vertical):
         yield Label("[bold cyan]Active Sessions[/bold cyan]", classes="sidebar-title")
         yield ListView(id="sessions-list")
 
-    def update_sessions(self, sessions: list[dict[str, Any]]) -> None:
+    def update_sessions(self, sessions: list[Any]) -> None:
         """Update the list view with current sessions from the server."""
         list_view = self.query_one("#sessions-list", ListView)
         list_view.clear()
         for s in sessions:
-            sid = str(s.get("id", "unknown"))
-            title = str(s.get("title", f"Session {sid[:6]}"))
-            status = str(s.get("status", "Running"))
+            if isinstance(s, dict):
+                sid = str(s.get("id", "unknown"))
+                title = str(s.get("title", f"Session {sid[:6]}"))
+                status = str(s.get("status", "Running"))
+            else:
+                sid = str(getattr(s, "id", getattr(s, "session_id", "unknown")))
+                title = str(getattr(s, "title", f"Session {sid[:6]}"))
+                status = str(getattr(s, "status", "Running"))
             list_view.append(SessionListItem(session_id=sid, title=title, status=status))
 
 
