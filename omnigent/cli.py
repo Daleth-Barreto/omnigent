@@ -1594,13 +1594,20 @@ def main() -> None:
     if log_to_stderr:
         os.environ[LOG_TO_STDERR_ENV_VAR] = "1"
 
-    # Bare ``omnigent`` with no args behaves like ``omnigent run`` on an
-    # interactive terminal: ``run`` resolves the configured default agent /
-    # first-run plan and drops into ``setup`` when nothing is configured. In
-    # a non-interactive context (pipe, CI, no TTY) fall back to ``--help`` so
-    # we never launch a REPL that would hang waiting on stdin.
+    # Bare ``omnigent`` with no args launches the universal TUI welcome screen and
+    # integrations manager on an interactive terminal. In a non-interactive context
+    # (pipe, CI, no TTY) fall back to ``--help`` so we never hang waiting on stdin.
     if not argv:
-        argv = ["run"] if sys.stdin.isatty() else ["--help"]
+        if sys.stdin.isatty():
+            try:
+                from omnigent.tui.app import run_tui
+                run_tui(server_url="http://127.0.0.1:6767")
+                return
+            except Exception as exc:
+                click.echo(f"Error launching interactive TUI: {exc}\n", err=True)
+                argv = ["--help"]
+        else:
+            argv = ["--help"]
 
     # Shorthand: ``omnigent --harness claude [opts]`` →
     # ``run --harness claude [opts]``. Click group-level options are
