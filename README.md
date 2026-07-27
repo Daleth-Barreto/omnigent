@@ -112,7 +112,7 @@ brew install omnigent-ai/tap/omnigent
 Or install straight from the repo:
 
 ```bash
-uv tool install -q --python 3.12 git+https://github.com/omnigent-ai/omnigent.git
+uv tool install -q --python 3.12 git+https://github.com/Daleth-Barreto/omnigent.git
 ```
 
 </details>
@@ -159,7 +159,7 @@ bootstrap is POSIX-only, so install with `uv` directly:
 ```powershell
 uv tool install --python 3.12 omnigent
 # or from the repo:
-uv tool install --python 3.12 git+https://github.com/omnigent-ai/omnigent.git
+uv tool install --python 3.12 git+https://github.com/Daleth-Barreto/omnigent.git
 ```
 
 What works on Windows: `omnigent server`, the web UI, and the SDK-based
