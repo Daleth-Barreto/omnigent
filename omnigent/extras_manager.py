@@ -96,7 +96,7 @@ def get_installer_command(
 
     if uninstall:
         if use_uv:
-            return ["uv", "pip", "uninstall", "-y", info.package_name]
+            return ["uv", "pip", "uninstall", "--python", sys.executable, "-y", info.package_name]
         return [sys.executable, "-m", "pip", "uninstall", "-y", info.package_name]
 
     # Check if we are inside a local git checkout / repo with the subdirectory
@@ -112,7 +112,7 @@ def get_installer_command(
         target = info.remote_url
 
     if use_uv:
-        return ["uv", "pip", "install", target]
+        return ["uv", "pip", "install", "--python", sys.executable, target]
     return [sys.executable, "-m", "pip", "install", target]
 
 
@@ -125,7 +125,7 @@ def run_installer(
     cmd = get_installer_command(extra_name, uninstall=uninstall)
     logger.info("Running installer command: %s", " ".join(cmd))
     if stream_callback:
-        stream_callback(f">> Ejecutando comando: {' '.join(cmd)}\n")
+        stream_callback(f">> Running command: {' '.join(cmd)}\n")
 
     try:
         process = subprocess.Popen(
@@ -138,7 +138,7 @@ def run_installer(
             bufsize=1,
         )
     except Exception as exc:
-        err_msg = f"Error al iniciar el subproceso de instalación: {exc}"
+        err_msg = f"Failed to start installer subprocess: {exc}"
         if stream_callback:
             stream_callback(f"[ERROR] {err_msg}\n")
         return 1, err_msg
@@ -155,9 +155,9 @@ def run_installer(
     final_output = "".join(output_lines)
 
     if returncode == 0:
-        msg = f"\n[ÉXITO] {'Desinstalación' if uninstall else 'Instalación'} de '{extra_name}' completada."
+        msg = f"\n[SUCCESS] {'Uninstallation' if uninstall else 'Installation'} of '{extra_name}' completed."
     else:
-        msg = f"\n[FALLO] El comando terminó con código de error {returncode}."
+        msg = f"\n[FAILED] Command exited with return code {returncode}."
 
     if stream_callback:
         stream_callback(f"{msg}\n")

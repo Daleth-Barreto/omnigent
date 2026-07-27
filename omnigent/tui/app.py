@@ -25,10 +25,11 @@ class OmnigentTUI(App[None]):
 
     BINDINGS = [
         Binding("ctrl+q", "quit", "Quit", show=True, priority=True),
-        Binding("ctrl+s", "toggle_sidebar", "Toggle Sidebar", show=True),
-        Binding("ctrl+l", "toggle_logs", "Toggle Logs", show=True),
-        Binding("ctrl+n", "new_session", "New Session", show=True),
-        Binding("ctrl+i", "toggle_integrations", "Extras / Integrations", show=True),
+        Binding("ctrl+s", "toggle_sidebar", "Toggle Sidebar", show=True, priority=True),
+        Binding("ctrl+l", "toggle_logs", "Toggle Logs", show=True, priority=True),
+        Binding("ctrl+n", "new_session", "New Session", show=True, priority=True),
+        Binding("ctrl+e", "toggle_integrations", "Extras / Integrations", show=True, priority=True),
+        Binding("f2", "toggle_integrations", "Extras (F2)", show=False, priority=True),
     ]
 
     def __init__(self, server_url: str = "http://127.0.0.1:6767", **kwargs: Any) -> None:
@@ -169,14 +170,14 @@ class OmnigentTUI(App[None]):
             else:
                 selected = int_pane.get_selected_extra_name()
                 if not selected:
-                    logs.log_event("[ADVERTENCIA] Selecciona primero una integración de la lista para gestionar.")
+                    logs.log_event("[WARNING] Please select an integration from the list first.")
                     return
                 targets = [selected]
                 uninstall = (btn_id == "btn-uninstall-extra")
 
             def _worker() -> None:
                 for t in targets:
-                    logs.log_event(f"Iniciando {'desinstalación' if uninstall else 'instalación'} de '{t}'...")
+                    logs.log_event(f"Starting {'uninstallation' if uninstall else 'installation'} of '{t}'...")
                     def _stream(msg: str) -> None:
                         self.call_from_thread(lambda: logs.log_event(msg.strip()))
                     run_installer(t, uninstall=uninstall, stream_callback=_stream)

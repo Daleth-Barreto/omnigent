@@ -8092,28 +8092,28 @@ def _interactive_manage_integrations() -> None:
     """Helper to interactively select integrations to install or uninstall from console."""
     from omnigent.extras_manager import get_catalog, is_installed, run_installer
     catalog = get_catalog()
-    click.echo("\n--- Gestor Interactivo de Integraciones y Extras Omnigent ---\n")
+    click.echo("\n--- Omnigent Interactive Integrations & Extras Manager ---\n")
     for i, extra in enumerate(catalog, 1):
-        status = " [VERDE - INSTALADO]" if is_installed(extra) else " [AMARILLO - NO INSTALADO]"
+        status = " [GREEN - INSTALLED]" if is_installed(extra) else " [YELLOW - NOT INSTALLED]"
         click.echo(f"  {i}) {extra.name.ljust(10)} - {extra.title}{status}")
-    click.echo(f"  {len(catalog)+1}) Instalar TODOS los extras oficiales")
-    click.echo(f"  0) Salir / Cancelar\n")
+    click.echo(f"  {len(catalog)+1}) Install ALL official extras")
+    click.echo(f"  0) Exit / Cancel\n")
 
-    choice = click.prompt("Selecciona una opción (número)", type=int, default=0)
+    choice = click.prompt("Select an option (number)", type=int, default=0)
     if choice == 0 or choice > len(catalog) + 1:
-        click.echo("Operación cancelada.")
+        click.echo("Operation cancelled.")
         return
 
     if choice == len(catalog) + 1:
         for extra in catalog:
-            click.echo(f"\nInstalando '{extra.name}'...")
+            click.echo(f"\nInstalling '{extra.name}'...")
             run_installer(extra.name, stream_callback=lambda msg: click.echo(msg, nl=False))
         return
 
     selected_extra = catalog[choice - 1]
     installed = is_installed(selected_extra)
     action = click.prompt(
-        f"\n¿Deseas {'DESINSTALAR' if installed else 'INSTALAR'} '{selected_extra.name}'? [Y/n]",
+        f"\nDo you want to {'UNINSTALL' if installed else 'INSTALL'} '{selected_extra.name}'? [Y/n]",
         default="Y",
         show_default=False,
     )

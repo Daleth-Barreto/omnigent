@@ -95,7 +95,7 @@ class TerminalPane(Container):
         yield Label("[bold green]Terminal Output (Active Pane)[/bold green]", id="pane-title")
         yield RichLog(id="terminal-log", highlight=True, markup=True)
         yield Input(
-            placeholder="Escribe tu comando aquí (ej: opencode, dir, omnigent --help) y presiona Enter...",
+            placeholder="Type your command here (e.g., opencode, dir, omnigent --help) and press Enter...",
             id="terminal-input",
         )
 
@@ -233,12 +233,12 @@ class IntegrationsPane(Container):
     """
 
     def compose(self) -> ComposeResult:
-        yield Label("[bold cyan]Gestor de Integraciones & Extras Oficiales[/bold cyan]\n[dim]Selecciona una integración para ver acciones o administrar paquetes:[/dim]", id="extras-title")
+        yield Label("[bold cyan]Official Integrations & Extras Manager[/bold cyan]\n[dim]Select an integration from the list to manage packages and actions:[/dim]", id="extras-title")
         yield ListView(id="extras-list")
         with Horizontal(id="extras-actions"):
-            yield Button("Instalar / Actualizar Extra", variant="primary", id="btn-install-extra")
-            yield Button("Desinstalar Extra", variant="warning", id="btn-uninstall-extra")
-            yield Button("Instalar TODOS", variant="success", id="btn-install-all")
+            yield Button("Install / Update Extra", variant="primary", id="btn-install-extra")
+            yield Button("Uninstall Extra", variant="warning", id="btn-uninstall-extra")
+            yield Button("Install ALL", variant="success", id="btn-install-all")
 
     def refresh_catalog(self) -> None:
         from omnigent.extras_manager import get_catalog, is_installed
