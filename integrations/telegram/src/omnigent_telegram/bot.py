@@ -64,6 +64,7 @@ class OmnigentTelegramBot:
     def start(self) -> None:
         """Start the Telegram bot polling loop."""
         asyncio.run(self.initialize())
+        self.client = OmnigentClient(base_url=self.config.omnigent_server_url)
         app = self.build_application()
         logger.info("Starting Omnigent Telegram Bot polling...")
         app.run_polling()
