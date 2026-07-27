@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "description": "Default index of official and contrib skills/tools for Omnigent agents.",
+  "skills": [
+    {
+      "name": "context7",
+      "description": "Official MCP server for up-to-date library documentation, migration guides, and official code examples.",
+      "type": "mcp",
+      "package": "@upstash/context7-mcp@latest",
+      "launcher": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "tags": ["documentation", "mcp", "official", "libraries", "context"]
+    },
+    {
+      "name": "playwright",
+      "description": "Official MCP server for browser automation, web navigation, UI testing, accessibility snapshots, and verification.",
+      "type": "mcp",
+      "package": "@playwright/mcp@latest",
+      "launcher": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "tags": ["browser", "testing", "automation", "mcp", "official", "e2e"]
+    },
+    {
+      "name": "testsprite",
+      "description": "Contrib MCP server wrapper around TestSprite CLI for automated E2E software testing and test suite generation.",
+      "type": "mcp-contrib",
+      "package": "contrib/mcp-testsprite",
+      "launcher": "python",
+      "args": ["-m", "mcp_testsprite"],
+      "env": {
+        "PYTHONPATH": "contrib/mcp-testsprite/src"
+      },
+      "tags": ["testing", "e2e", "testsprite", "contrib", "mcp", "automation"]
+    },
+    {
+      "name": "skill-manager",
+      "description": "AI-native agent skill that manages, searches, installs, and removes skills and MCP tools dynamically via CLI.",
+      "type": "agent-skill",
+      "path": "skills/skill_manager",
+      "tags": ["agent", "meta", "management", "cli", "skills"]
+    }
+  ]
+}

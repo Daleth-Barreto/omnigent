@@ -47,6 +47,7 @@ from omnigent.cli_config import (
 from omnigent.cli_native import register_native_commands as _register_native_commands
 from omnigent.cli_sandbox import lakebox as _lakebox_alias_group
 from omnigent.cli_sandbox import sandbox as _sandbox_group
+from omnigent.cli_skill import skill as _skill_group
 from omnigent.config import (
     _merge_effective_config,
     global_config_path,
@@ -8426,6 +8427,9 @@ if _sandbox_providers():
     cli.add_command(_sandbox_group)
     if "lakebox" in _sandbox_providers():
         cli.add_command(_lakebox_alias_group)
+
+# ─── skill group ──────────────────────────────────────────────────
+cli.add_command(_skill_group)
 
 # ─── debug group ──────────────────────────────────────────────────
 #
