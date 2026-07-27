@@ -1,17 +1,5 @@
 # Daleth Agent — Development assistant with isolated external MCP tools.
-#
-# This example agent wires official and contrib MCP servers for:
-#   - Playwright (@playwright/mcp) for browser automation & web navigation.
-#   - Context7 (@upstash/context7-mcp) for up-to-date documentation & code context.
-#   - TestSprite (contrib/mcp-testsprite) for cloud E2E testing & verification.
-#
-# Prerequisites:
-#   - Node.js (v20+) and `npx` on PATH.
-#   - Python 3.11+ with `mcp` installed.
-#
-# Usage:
-#   omnigent run examples/daleth_agent
-
+# Wires official and contrib MCP servers: Playwright, Context7, and TestSprite.
 spec_version: 1
 name: daleth_agent
 description: >-
@@ -24,19 +12,16 @@ executor:
     harness: claude-sdk
 
 tools:
-  # Context7: Official MCP server — up-to-date library documentation & code context
   context7:
     type: mcp
     command: npx
     args: ["-y", "@upstash/context7-mcp@latest"]
 
-  # Playwright: Official MCP server — browser automation & web interaction
   playwright:
     type: mcp
     command: npx
     args: ["-y", "@playwright/mcp@latest"]
 
-  # TestSprite: Contrib MCP server wrapper — automated software testing & E2E verification
   testsprite:
     type: mcp
     command: python
@@ -51,19 +36,20 @@ os_env:
     type: none
 
 prompt: |
-  Eres un agente de desarrollo inteligente (daleth_agent). Cuentas con herramientas externas
-  aisladas de alto rendimiento ejecutándose mediante el Model Context Protocol (MCP):
+  You are an intelligent development agent (daleth_agent) equipped with isolated,
+  high-performance external tools running via the Model Context Protocol (MCP):
 
-  - `context7`: Utilízalo siempre que necesites consultar documentación actualizada, guías de migración,
-    o ejemplos de código oficiales de cualquier librería o framework. No adivines APIs de versiones recientes;
-    consulta Context7 primero.
-  - `playwright`: Utilízalo para automatizar el navegador, navegar por páginas web, inspeccionar elementos,
-    hacer clic, escribir texto y tomar capturas de pantalla para verificar tus implementaciones o investigar fallos.
-  - `testsprite`: Utilízalo para verificar la suite de testing, comprobar configuración e invocar la CLI
-    de TestSprite (`testsprite_check`, `testsprite_run`) en entornos en la nube o locales.
+  - `context7`: Always use this to fetch up-to-date documentation, migration guides,
+    or official code examples for any library or framework. Do not guess newer APIs;
+    query Context7 first.
+  - `playwright`: Use this to automate browser navigation, inspect elements, click,
+    type text, and capture screenshots to verify web implementations or debug UI failures.
+  - `testsprite`: Use this to verify test suites, check configurations, and invoke the
+    TestSprite CLI (`testsprite_check`, `testsprite_run`) in cloud or local environments.
 
-  Reglas clave:
-  1. Mantén siempre la estabilidad del código base y la arquitectura de aislamiento.
-  2. Si una herramienta externa (MCP) falla o no responde, maneja el error con gracia y explícaselo
-     al usuario sin interrumpir abruptamente el flujo de trabajo.
-  3. Para tareas de interfaz web o E2E, verifica tus cambios usando `playwright` o `testsprite` cuando sea posible.
+  Key rules:
+  1. Always preserve codebase stability and architectural isolation.
+  2. If an external tool (MCP) fails or times out, handle the error gracefully and report
+     it to the user without abruptly terminating the workflow.
+  3. For web UI or E2E tasks, verify your changes using `playwright` or `testsprite` when applicable.
+

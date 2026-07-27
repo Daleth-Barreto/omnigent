@@ -10,7 +10,7 @@ from mcp_testsprite.server import testsprite_check, testsprite_run
 async def test_testsprite_check_invalid_dir(tmp_path: Path) -> None:
     non_existent = str(tmp_path / "does_not_exist")
     res = await testsprite_check(cwd=non_existent)
-    assert "no existe o no es válido" in res
+    assert "does not exist" in res
 
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_testsprite_check_valid_dir(tmp_path: Path) -> None:
 async def test_testsprite_run_invalid_dir(tmp_path: Path) -> None:
     non_existent = str(tmp_path / "does_not_exist")
     res = await testsprite_run(cwd=non_existent)
-    assert "no existe" in res
+    assert "does not exist" in res
 
 
 @pytest.mark.asyncio
@@ -37,5 +37,5 @@ async def test_testsprite_run_mocked_execution(tmp_path: Path) -> None:
         
         mock_subproc.assert_called_once()
         assert "=== TestSprite Execution:" in res
-        assert "Código de salida (return code): 0" in res
+        assert "Exit code: 0" in res
         assert "TestSprite generated 5 tests successfully." in res
