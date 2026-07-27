@@ -5,8 +5,7 @@ from __future__ import annotations
 import abc
 import sys
 from pathlib import Path
-from typing import Any
-
+from typing import Any, Callable
 
 class TerminalBackend(abc.ABC):
     """Abstract base class defining universal terminal control operations."""
@@ -20,6 +19,7 @@ class TerminalBackend(abc.ABC):
         args: list[str] | None = None,
         env: dict[str, str] | None = None,
         cwd: str | Path | None = None,
+        on_output: Callable[[str], None] | None = None,
     ) -> Any:
         """Spawn a new terminal session or process."""
 

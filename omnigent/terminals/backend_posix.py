@@ -6,8 +6,10 @@ import logging
 import os
 import shutil
 import subprocess
+import threading
+import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from omnigent.terminals.backend import TerminalBackend
 
@@ -33,6 +35,7 @@ class PosixTmuxBackend(TerminalBackend):
         args: list[str] | None = None,
         env: dict[str, str] | None = None,
         cwd: str | Path | None = None,
+        on_output: Callable[[str], None] | None = None,
     ) -> Any:
         """Spawn a new tmux session running the given command."""
         socket_path = self._get_socket_path(session_key)
@@ -58,7 +61,21 @@ class PosixTmuxBackend(TerminalBackend):
             raise RuntimeError(f"tmux spawn failed: {res.stderr}")
 
         self._instances[session_key] = {"socket": socket_path, "name": name, "command": full_cmd}
+        if on_output:
+            self._start_reader_thread(session_key, on_output)
         return self._instances[session_key]
+
+    def _start_reader_thread(self, session_key: str, on_output: Callable[[str], None]) -> None:
+        def _read_loop() -> None:
+            last_content = ""
+            while session_key in self._instances:
+                content = self.capture_pane(session_key, lines=100)
+                if content != last_content and not content.startswith("*"):
+                    last_content = content
+                    on_output(content)
+                time.sleep(0.5)
+
+        threading.Thread(target=_read_loop, daemon=True).start()
 
     def send_keys(
         self,

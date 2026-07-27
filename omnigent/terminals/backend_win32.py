@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
+import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from omnigent.terminals.backend import TerminalBackend
 
@@ -27,6 +28,7 @@ class Win32ConPtyBackend(TerminalBackend):
         args: list[str] | None = None,
         env: dict[str, str] | None = None,
         cwd: str | Path | None = None,
+        on_output: Callable[[str], None] | None = None,
     ) -> Any:
         """Spawn a Windows subprocess or ConPTY session."""
         full_cmd = [command]
@@ -45,19 +47,47 @@ class Win32ConPtyBackend(TerminalBackend):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.PIPE,
-                text=True,
-                bufsize=1,
+                bufsize=0,
             )
             self._instances[session_key] = {
                 "process": proc,
                 "name": name,
                 "command": command,
-                "buffer": [f"[Win32 Terminal: {name} spawned with PID {proc.pid}]"],
+                "buffer": [f"[Win32 Terminal: {name} spawned with PID {proc.pid}]\n"],
             }
+            self._start_reader_thread(proc, self._instances[session_key], on_output)
             return self._instances[session_key]
         except Exception as exc:
             logger.error("Failed to spawn Win32 terminal process %s: %s", session_key, exc)
             raise RuntimeError(f"Win32 spawn failed: {exc}") from exc
+
+    def _start_reader_thread(
+        self,
+        proc: subprocess.Popen[Any],
+        inst: dict[str, Any],
+        on_output: Callable[[str], None] | None,
+    ) -> None:
+        def _read_loop() -> None:
+            stdout = proc.stdout
+            if not stdout:
+                return
+            while True:
+                try:
+                    data = os.read(stdout.fileno(), 4096)
+                    if not data:
+                        break
+                    text = data.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "")
+                    inst["buffer"].append(text)
+                    if len(inst["buffer"]) > 2000:
+                        inst["buffer"] = inst["buffer"][-2000:]
+                    if on_output:
+                        on_output(text)
+                except (OSError, ValueError):
+                    break
+            if on_output:
+                on_output("\n[bold red]*Terminal process terminated*[/bold red]\n")
+
+        threading.Thread(target=_read_loop, daemon=True).start()
 
     def send_keys(
         self,
@@ -70,9 +100,10 @@ class Win32ConPtyBackend(TerminalBackend):
         inst = self._instances.get(session_key)
         if not inst or not inst.get("process"):
             raise RuntimeError(f"Win32 session {session_key} is not running.")
-        proc: subprocess.Popen[str] = inst["process"]
+        proc: subprocess.Popen[Any] = inst["process"]
         if proc.stdin and text:
-            proc.stdin.write(text + ("\n" if not literal else ""))
+            payload = text if text.endswith("\n") else text + "\n"
+            proc.stdin.write(payload.encode("utf-8") if isinstance(payload, str) else payload)
             proc.stdin.flush()
 
     def capture_pane(self, session_key: str, lines: int | None = None) -> str:

@@ -9,7 +9,7 @@ from typing import Any
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal
-from textual.widgets import Footer, Header
+from textual.widgets import Footer, Header, Input
 
 from omnigent.terminals.backend import get_terminal_backend
 from omnigent.tui.views import ElicitationModal, IntegrationsPane, LogsPane, SessionsSidebar, TerminalPane
@@ -48,12 +48,17 @@ class OmnigentTUI(App[None]):
         yield Footer()
 
     def on_mount(self) -> None:
-        """Called when TUI is mounted; starts periodic session syncing."""
+        """Called when TUI is mounted; starts periodic session syncing and local terminal."""
         self.query_one(LogsPane).log_event(
             f"Initialized TUI connecting to {self.server_url} using backend: {self.backend.__class__.__name__}"
         )
         self._refresh_timer = self.set_interval(5.0, self.refresh_sessions_task)
         self.run_worker(self._initial_load())
+        self.action_new_session()
+        try:
+            self.query_one("#terminal-input", Input).focus()
+        except Exception:
+            pass
 
     async def _initial_load(self) -> None:
         """Initial background load of sessions."""
@@ -91,13 +96,43 @@ class OmnigentTUI(App[None]):
         pane = self.query_one(TerminalPane)
         pane.clear_pane()
         pane.write_ansi("[bold yellow]Spawning new terminal session...[/bold yellow]\n")
+
+        def _on_output(text: str) -> None:
+            def _update() -> None:
+                try:
+                    self.query_one(TerminalPane).write_ansi(text)
+                except Exception:
+                    pass
+            self.call_from_thread(_update)
+
         try:
-            inst = self.backend.spawn("tui-session", "tui-1", "bash" if self.backend.__class__.__name__ == "PosixTmuxBackend" else "powershell.exe")
+            inst = self.backend.spawn(
+                "tui-session",
+                "tui-1",
+                "bash" if self.backend.__class__.__name__ == "PosixTmuxBackend" else "powershell.exe",
+                on_output=_on_output,
+            )
             pane.write_ansi(f"[bold green]Session spawned successfully via {self.backend.__class__.__name__}![/bold green]\n")
             self.query_one(LogsPane).log_event(f"Spawned local terminal: {inst}")
         except Exception as exc:
             pane.write_ansi(f"[bold red]Spawn failed:[/bold red] {exc}\n")
             self.query_one(LogsPane).log_event(f"Spawn error: {exc}")
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        """Handle command submitted from the terminal input box."""
+        if event.input.id == "terminal-input":
+            command = event.value.strip()
+            if not command:
+                return
+            event.input.value = ""
+            pane = self.query_one(TerminalPane)
+            pane.write_ansi(f"[bold cyan]> {command}[/bold cyan]\n")
+            try:
+                self.backend.send_keys("tui-1", text=command)
+                self.query_one(LogsPane).log_event(f"Sent command to terminal: {command}")
+            except Exception as exc:
+                pane.write_ansi(f"[bold red]Error sending command:[/bold red] {exc}\n")
+                self.query_one(LogsPane).log_event(f"Send error: {exc}")
 
     def trigger_elicitation(self, prompt: str, elicit_id: str) -> None:
         """Helper to show the approval modal screen from a background worker."""

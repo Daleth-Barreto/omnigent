@@ -9,7 +9,7 @@ from rich.text import Text
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Label, ListItem, ListView, RichLog, Static
+from textual.widgets import Button, Footer, Header, Input, Label, ListItem, ListView, RichLog, Static
 
 
 
@@ -66,17 +66,41 @@ class TerminalPane(Container):
         height: 1fr;
         border: solid $accent;
         background: $surface;
+        layout: vertical;
+    }
+    #pane-title {
+        dock: top;
+        height: auto;
+        padding: 0 1;
+        background: $boost;
+    }
+    #terminal-log {
+        height: 1fr;
+        width: 100%;
+    }
+    #terminal-input {
+        dock: bottom;
+        width: 100%;
+        margin-top: 1;
+        border: solid $primary;
     }
     """
 
     def compose(self) -> ComposeResult:
         yield Label("[bold green]Terminal Output (Active Pane)[/bold green]", id="pane-title")
         yield RichLog(id="terminal-log", highlight=True, markup=True)
+        yield Input(
+            placeholder="Escribe tu comando aquí (ej: opencode, dir, omnigent --help) y presiona Enter...",
+            id="terminal-input",
+        )
 
     def write_ansi(self, text: str) -> None:
         """Append ANSI text to the log viewer."""
         log_widget = self.query_one("#terminal-log", RichLog)
-        log_widget.write(text)
+        if "[" in text and "/" in text and any(tag in text for tag in ("bold", "green", "red", "yellow", "cyan", "dim")):
+            log_widget.write(text)
+        else:
+            log_widget.write(Text.from_ansi(text.rstrip()))
 
     def clear_pane(self) -> None:
         """Clear the terminal log view."""
