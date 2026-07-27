@@ -9,7 +9,8 @@ from rich.text import Text
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Label, ListItem, ListView, Log, Static
+from textual.widgets import Button, Footer, Header, Label, ListItem, ListView, RichLog, Static
+
 
 
 class SessionListItem(ListItem):
@@ -65,16 +66,16 @@ class TerminalPane(Container):
 
     def compose(self) -> ComposeResult:
         yield Label("[bold green]Terminal Output (Active Pane)[/bold green]", id="pane-title")
-        yield Log(id="terminal-log", highlight=True, markup=True)
+        yield RichLog(id="terminal-log", highlight=True, markup=True)
 
     def write_ansi(self, text: str) -> None:
         """Append ANSI text to the log viewer."""
-        log_widget = self.query_one("#terminal-log", Log)
+        log_widget = self.query_one("#terminal-log", RichLog)
         log_widget.write(text)
 
     def clear_pane(self) -> None:
         """Clear the terminal log view."""
-        log_widget = self.query_one("#terminal-log", Log)
+        log_widget = self.query_one("#terminal-log", RichLog)
         log_widget.clear()
 
 
@@ -92,11 +93,11 @@ class LogsPane(Container):
 
     def compose(self) -> ComposeResult:
         yield Label("[dim]System & MCP Tool Diagnostics Log[/dim]")
-        yield Log(id="system-log")
+        yield RichLog(id="system-log", markup=True)
 
     def log_event(self, message: str) -> None:
         """Append a diagnostic event message."""
-        log_widget = self.query_one("#system-log", Log)
+        log_widget = self.query_one("#system-log", RichLog)
         log_widget.write(f"[dim]{message}[/dim]")
 
 
