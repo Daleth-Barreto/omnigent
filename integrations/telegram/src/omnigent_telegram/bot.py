@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 
@@ -60,12 +61,12 @@ class OmnigentTelegramBot:
 
         return self.app
 
-    async def start(self) -> None:
+    def start(self) -> None:
         """Start the Telegram bot polling loop."""
-        await self.initialize()
+        asyncio.run(self.initialize())
         app = self.build_application()
         logger.info("Starting Omnigent Telegram Bot polling...")
-        await app.run_polling(close_loop=False)
+        app.run_polling()
 
     async def cmd_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: ARG002
         """Handler for /start command."""
