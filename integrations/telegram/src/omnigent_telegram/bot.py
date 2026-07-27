@@ -72,12 +72,12 @@ class OmnigentTelegramBot:
     async def cmd_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handler for /start command."""
         msg = (
-            "🤖 **Bienvenido al Bot de Omnigent**\n\n"
-            "Estoy conectado al servidor de agentes autónomos. Puedes enviarme cualquier mensaje para conversar o pedirme que ejecute tareas (ej. investigar, clonar repos, ejecutar tests).\n\n"
-            "**Comandos disponibles:**\n"
-            "/new - Reiniciar conversación y crear una nueva sesión en el servidor.\n"
-            "/status - Ver el estado de la conexión y sesión actual.\n"
-            "/help - Mostrar esta ayuda."
+            "🤖 **Welcome to Omnigent Bot**\n\n"
+            "I am connected to the autonomous agent server. Send any message to converse or ask me to perform tasks (e.g., research, clone repos, run tests).\n\n"
+            "**Available Commands:**\n"
+            "/new - Reset chat session and start fresh on the server.\n"
+            "/status - View connection status and active session ID.\n"
+            "/help - Show this help message."
         )
         if update.message:
             await update.message.reply_text(msg, parse_mode="Markdown")
@@ -93,11 +93,11 @@ class OmnigentTelegramBot:
         key = ChatThreadKey(update.effective_chat.id, update.effective_message.message_thread_id or 0 if update.effective_message else 0)
         record = await self.store.get_session(key)
         
-        status_msg = f"🌐 **Servidor Omnigent:** `{self.config.omnigent_server_url}`\n"
+        status_msg = f"🌐 **Omnigent Server:** `{self.config.omnigent_server_url}`\n"
         if record:
-            status_msg += f"🔑 **Sesión Activa:** `{record.session_id}`"
+            status_msg += f"🔑 **Active Session:** `{record.session_id}`"
         else:
-            status_msg += "ℹ️ **Sesión:** Ninguna activa (se creará en tu próximo mensaje)."
+            status_msg += "ℹ️ **Session:** None active (will be created on next message)."
             
         if update.message:
             await update.message.reply_text(status_msg, parse_mode="Markdown")
@@ -109,7 +109,7 @@ class OmnigentTelegramBot:
         key = ChatThreadKey(update.effective_chat.id, update.effective_message.message_thread_id or 0 if update.effective_message else 0)
         await self.store.delete_session(key)
         if update.message:
-            await update.message.reply_text("🔄 **Sesión reiniciada.** Tu próximo mensaje creará una nueva sesión en el servidor.", parse_mode="Markdown")
+            await update.message.reply_text("🔄 **Session reset.** Your next message will create a fresh session on the server.", parse_mode="Markdown")
 
     async def _ensure_session(self, key: ChatThreadKey) -> str:
         """Retrieve existing session ID or create a fresh session on the Omnigent server."""
@@ -130,8 +130,8 @@ class OmnigentTelegramBot:
         buttons = []
         if not elicit.questions:
             buttons.append([
-                InlineKeyboardButton("✅ Aprobar", callback_data=f"elicit:{elicit_id}:approve"),
-                InlineKeyboardButton("❌ Denegar", callback_data=f"elicit:{elicit_id}:deny"),
+                InlineKeyboardButton("✅ Approve", callback_data=f"elicit:{elicit_id}:approve"),
+                InlineKeyboardButton("❌ Deny", callback_data=f"elicit:{elicit_id}:deny"),
             ])
         else:
             for q in elicit.questions:
@@ -154,10 +154,10 @@ class OmnigentTelegramBot:
             session_id = await self._ensure_session(key)
         except Exception as exc:
             logger.error("Failed to ensure session for chat %s: %s", chat_id, exc)
-            await update.message.reply_text(f"⚠️ **Error de conexión al servidor Omnigent:**\n`{exc}`", parse_mode="Markdown")
+            await update.message.reply_text(f"⚠️ **Server connection error:**\n`{exc}`", parse_mode="Markdown")
             return
 
-        status_msg = await update.message.reply_text("⏳ *Procesando solicitud...*", parse_mode="Markdown")
+        status_msg = await update.message.reply_text("⏳ *Processing request...*", parse_mode="Markdown")
 
         text_buffer = ""
         last_edit_time = 0.0
@@ -179,7 +179,7 @@ class OmnigentTelegramBot:
                 if elicit:
                     elicit_id = event.get("data", {}).get("id", "default_elicit")
                     keyboard = self._build_elicitation_keyboard(elicit_id, elicit)
-                    prompt_text = text_buffer if text_buffer.strip() else "⚠️ **Acción requerida por el agente:**"
+                    prompt_text = text_buffer if text_buffer.strip() else "⚠️ **Action required by agent:**"
                     if elicit.questions:
                         for q in elicit.questions:
                             prompt_text += f"\n\n❓ **{q.question}**"
@@ -192,7 +192,7 @@ class OmnigentTelegramBot:
                 if is_hard_terminal_event(event):
                     break
 
-            final_text = text_buffer.strip() or "✅ *Turno completado sin salida de texto.*"
+            final_text = text_buffer.strip() or "✅ *Turn completed with no text output.*"
             try:
                 await status_msg.edit_text(final_text[:4090], parse_mode="Markdown")
             except Exception:
@@ -200,7 +200,7 @@ class OmnigentTelegramBot:
 
         except Exception as exc:
             logger.error("Error during streaming turn in session %s: %s", session_id, exc)
-            err_text = f"⚠️ **Error durante la ejecución del turno:**\n`{exc}`"
+            err_text = f"⚠️ **Error during turn execution:**\n`{exc}`"
             if text_buffer:
                 err_text = text_buffer[:3500] + "\n\n" + err_text
             try:
@@ -229,7 +229,7 @@ class OmnigentTelegramBot:
 
         record = await self.store.get_session(key)
         if not record or not query.message:
-            await query.edit_message_text("⚠️ Sesión expirada o no encontrada.")
+            await query.edit_message_text("⚠️ Session expired or not found.")
             return
 
         accepted = (action == "approve" or action == "opt")
@@ -237,15 +237,15 @@ class OmnigentTelegramBot:
         verdict_text = ""
 
         if action == "approve":
-            verdict_text = "\n\n✅ **Aprobado por el usuario.**"
+            verdict_text = "\n\n✅ **Approved by user.**"
         elif action == "deny":
             accepted = False
-            verdict_text = "\n\n❌ **Denegado por el usuario.**"
+            verdict_text = "\n\n❌ **Denied by user.**"
         elif action == "opt" and len(parts) >= 5:
             q_key = parts[3]
             selected_label = ":".join(parts[4:])
             content = {q_key: selected_label}
-            verdict_text = f"\n\n✅ **Seleccionado: {selected_label}**"
+            verdict_text = f"\n\n✅ **Selected: {selected_label}**"
 
         try:
             await self.client.resolve_elicitation(
@@ -258,4 +258,4 @@ class OmnigentTelegramBot:
             await query.edit_message_text((current_text + verdict_text)[:4090], reply_markup=None, parse_mode="Markdown")
         except Exception as exc:
             logger.error("Failed to resolve elicitation %s: %s", elicit_id, exc)
-            await query.edit_message_text(f"⚠️ Error al enviar respuesta al servidor: `{exc}`", reply_markup=None, parse_mode="Markdown")
+            await query.edit_message_text(f"⚠️ Error sending response to server: `{exc}`", reply_markup=None, parse_mode="Markdown")

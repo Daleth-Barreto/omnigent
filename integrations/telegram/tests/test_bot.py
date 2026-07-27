@@ -27,9 +27,9 @@ def test_build_elicitation_keyboard_binary(monkeypatch: pytest.MonkeyPatch, tmp_
     assert len(kb.inline_keyboard) == 1
     buttons = kb.inline_keyboard[0]
     assert len(buttons) == 2
-    assert buttons[0].text == "✅ Aprobar"
+    assert buttons[0].text == "✅ Approve"
     assert buttons[0].callback_data == "elicit:elicit_101:approve"
-    assert buttons[1].text == "❌ Denegar"
+    assert buttons[1].text == "❌ Deny"
     assert buttons[1].callback_data == "elicit:elicit_101:deny"
 
 

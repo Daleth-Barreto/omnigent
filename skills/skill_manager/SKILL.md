@@ -9,8 +9,8 @@ You are equipped with the **Omnigent Skill Manager** skill. Your role is to help
 
 ## When to use this skill
 Use this skill whenever the user asks to:
-- Search for available tools, MCP servers, or extensions (e.g., "busca una skill para navegador", "qué MCPs hay para testing").
-- Install or wire a tool into an agent's configuration file (e.g., "instala playwright en daleth_agent").
+- Search for available tools, MCP servers, or extensions (e.g., "search for browser automation skills", "what MCPs are available for testing").
+- Install or wire a tool into an agent's configuration file (e.g., "install playwright into daleth_agent").
 - Check what tools an agent is currently using or list the global skills catalog.
 - Remove a tool from an agent or global registry.
 
