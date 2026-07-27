@@ -8440,6 +8440,17 @@ cli.add_command(_skill_group)
 if _telegram_group is not None:
     cli.add_command(_telegram_group, name="telegram")
 
+# ─── tui command ────────────────────────────────────────────────────
+@cli.command("tui")
+@click.option("--server", "-s", default="http://127.0.0.1:6767", help="URL of the Omnigent server daemon.")
+def tui_cmd(server: str) -> None:
+    """Launch the Universal Console (TUI) for interactive agent control."""
+    from omnigent.tui import OmnigentTUI
+
+    app = OmnigentTUI(server_url=server)
+    app.run()
+
+
 # ─── debug group ──────────────────────────────────────────────────
 #
 # Operator-only maintenance commands, grouped under ``omnigent debug``
