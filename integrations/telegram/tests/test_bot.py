@@ -26,10 +26,9 @@ def test_build_elicitation_keyboard_binary(monkeypatch: pytest.MonkeyPatch, tmp_
     assert isinstance(kb, InlineKeyboardMarkup)
     assert len(kb.inline_keyboard) == 1
     buttons = kb.inline_keyboard[0]
-    assert len(buttons) == 2
-    assert buttons[0].text == "✅ Approve"
+    assert buttons[0].text == "Approve"
     assert buttons[0].callback_data == "elicit:elicit_101:approve"
-    assert buttons[1].text == "❌ Deny"
+    assert buttons[1].text == "Deny"
     assert buttons[1].callback_data == "elicit:elicit_101:deny"
 
 
@@ -49,7 +48,7 @@ def test_build_elicitation_keyboard_form(monkeypatch: pytest.MonkeyPatch, tmp_pa
     elicit = ElicitationRequest(questions=[q1])
     kb = bot._build_elicitation_keyboard("elicit_202", elicit)
     assert len(kb.inline_keyboard) == 2
-    assert kb.inline_keyboard[0][0].text == "👉 Red"
+    assert kb.inline_keyboard[0][0].text == "Red"
     assert kb.inline_keyboard[0][0].callback_data == "elicit:elicit_202:opt:color:Red"
-    assert kb.inline_keyboard[1][0].text == "👉 Blue"
+    assert kb.inline_keyboard[1][0].text == "Blue"
     assert kb.inline_keyboard[1][0].callback_data == "elicit:elicit_202:opt:color:Blue"
