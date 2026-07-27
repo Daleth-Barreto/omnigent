@@ -121,7 +121,7 @@ def _do_start() -> None:
 
     click.echo(f"Starting Telegram bot @{username}... Press Ctrl+C to stop.")
     try:
-        asyncio.run(bot.run())
+        asyncio.run(bot.start())
     except KeyboardInterrupt:
         click.echo("\nStopped Telegram bot.")
 
