@@ -77,8 +77,8 @@ def test_telegram_setup_invalid_token(
 
 
 def test_telegram_status_configured(
-    monkeypatch: pytest.MonkeyPatch,
-    mock_config_path: Path,  # noqa: ARG001
+    monkeypatch: pytest.MonkeyPatch,  # noqa: ARG001
+    mock_config_path: Path,
 ) -> None:
     mock_config_path.write_text(
         json.dumps(
@@ -112,3 +112,30 @@ def test_telegram_reset_and_remove(mock_config_path: Path) -> None:
     result2 = runner.invoke(telegram_cli, ["remove"])
     assert result2.exit_code == 0
     assert "No Telegram bot configuration found." in result2.output
+
+
+def test_telegram_start(monkeypatch: pytest.MonkeyPatch, mock_config_path: Path) -> None:
+    runner = CliRunner()
+    res_unconfig = runner.invoke(telegram_cli, ["start"])
+    assert res_unconfig.exit_code != 0
+    assert "not configured" in res_unconfig.output.lower()
+
+    mock_config_path.write_text(
+        json.dumps(
+            {
+                "telegram_bot_token": "token_xyz",
+                "omnigent_server_url": "http://localhost:8000",
+                "bot_username": "AwesomeAgentBot",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    async def mock_start(self: Any) -> None:
+        pass
+
+    monkeypatch.setattr("omnigent_telegram.cli.OmnigentTelegramBot.start", mock_start)
+
+    res_config = runner.invoke(telegram_cli, ["start"])
+    assert res_config.exit_code == 0
+    assert "Starting Telegram bot @AwesomeAgentBot..." in res_config.output
