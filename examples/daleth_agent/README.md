@@ -2,16 +2,18 @@
 
 An example Omnigent agent that demonstrates **architectural isolation** for external AI agent tools via the Model Context Protocol (MCP). Instead of generating direct runtime library dependencies that could break the core codebase, tools run as independent MCP server processes.
 
-Wired tools (using official MCP servers):
+Wired tools (using official and contrib MCP servers):
 
 | Tool | MCP Server | Description |
 |---|---|---|
 | `context7` | `@upstash/context7-mcp` | Up-to-date documentation, migration guides, and official code examples for libraries and frameworks. |
 | `playwright` | `@playwright/mcp` | Browser automation, web page navigation, accessibility snapshots, interaction, and E2E verification. |
+| `testsprite` | `contrib/mcp-testsprite` | Automated software testing and cloud E2E verification via TestSprite CLI. |
 
 ## Prerequisites
 
-- **Node.js** (v20+) and **`npx`** on `PATH` — both official MCP servers are published as npm packages and launched dynamically via `npx -y ...@latest`.
+- **Node.js** (v20+) and **`npx`** on `PATH` — official MCP servers and TestSprite CLI are launched dynamically via `npx`.
+- **Python 3.11+** with `mcp` installed — runs the standalone stdio MCP wrapper for TestSprite.
 
 ## Run
 

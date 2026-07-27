@@ -1,11 +1,13 @@
 # Daleth Agent — Development assistant with isolated external MCP tools.
 #
-# This example agent wires official MCP servers for:
+# This example agent wires official and contrib MCP servers for:
 #   - Playwright (@playwright/mcp) for browser automation & web navigation.
 #   - Context7 (@upstash/context7-mcp) for up-to-date documentation & code context.
+#   - TestSprite (contrib/mcp-testsprite) for cloud E2E testing & verification.
 #
 # Prerequisites:
 #   - Node.js (v20+) and `npx` on PATH.
+#   - Python 3.11+ with `mcp` installed.
 #
 # Usage:
 #   omnigent run examples/daleth_agent
@@ -14,7 +16,7 @@ spec_version: 1
 name: daleth_agent
 description: >-
   A development assistant that uses isolated external tools: Playwright for
-  web navigation and E2E verification, and Context7 for up-to-date documentation.
+  web navigation, Context7 for up-to-date documentation, and TestSprite for E2E testing.
 
 executor:
   type: omnigent
@@ -34,6 +36,14 @@ tools:
     command: npx
     args: ["-y", "@playwright/mcp@latest"]
 
+  # TestSprite: Contrib MCP server wrapper — automated software testing & E2E verification
+  testsprite:
+    type: mcp
+    command: python
+    args: ["-m", "mcp_testsprite"]
+    env:
+      PYTHONPATH: contrib/mcp-testsprite/src
+
 os_env:
   type: caller_process
   cwd: .
@@ -49,9 +59,11 @@ prompt: |
     consulta Context7 primero.
   - `playwright`: Utilízalo para automatizar el navegador, navegar por páginas web, inspeccionar elementos,
     hacer clic, escribir texto y tomar capturas de pantalla para verificar tus implementaciones o investigar fallos.
+  - `testsprite`: Utilízalo para verificar la suite de testing, comprobar configuración e invocar la CLI
+    de TestSprite (`testsprite_check`, `testsprite_run`) en entornos en la nube o locales.
 
   Reglas clave:
   1. Mantén siempre la estabilidad del código base y la arquitectura de aislamiento.
   2. Si una herramienta externa (MCP) falla o no responde, maneja el error con gracia y explícaselo
      al usuario sin interrumpir abruptamente el flujo de trabajo.
-  3. Para tareas de interfaz web o E2E, verifica tus cambios usando `playwright` cuando sea posible.
+  3. Para tareas de interfaz web o E2E, verifica tus cambios usando `playwright` o `testsprite` cuando sea posible.
