@@ -84,7 +84,7 @@ def test_telegram_status_configured(
         json.dumps(
             {
                 "telegram_bot_token": "token_xyz",
-                "omnigent_server_url": "http://localhost:8000",
+                "omnigent_server_url": "http://localhost:6767",
                 "bot_username": "AwesomeAgentBot",
             }
         ),
@@ -96,7 +96,7 @@ def test_telegram_status_configured(
     assert result.exit_code == 0
     assert "Status: Configured" in result.output
     assert "Bot Username: @AwesomeAgentBot" in result.output
-    assert "Server URL: http://localhost:8000" in result.output
+    assert "Server URL: http://localhost:6767" in result.output
 
 
 def test_telegram_reset_and_remove(mock_config_path: Path) -> None:
@@ -124,7 +124,7 @@ def test_telegram_start(monkeypatch: pytest.MonkeyPatch, mock_config_path: Path)
         json.dumps(
             {
                 "telegram_bot_token": "token_xyz",
-                "omnigent_server_url": "http://localhost:8000",
+                "omnigent_server_url": "http://localhost:6767",
                 "bot_username": "AwesomeAgentBot",
             }
         ),

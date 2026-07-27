@@ -110,7 +110,7 @@ def _do_start() -> None:
             "Telegram bot is not configured. Run 'omnigent telegram setup' first."
         )
 
-    server_url = (saved.get("omnigent_server_url") if saved else None) or "http://localhost:8000"
+    server_url = (saved.get("omnigent_server_url") if saved else None) or "http://localhost:6767"
     username = (saved.get("bot_username") if saved else None) or "TelegramBot"
 
     config = TelegramConfig(
@@ -133,7 +133,7 @@ def _do_status() -> None:
         return
 
     username = saved.get("bot_username", "Unknown")
-    url = saved.get("omnigent_server_url", "http://localhost:8000")
+    url = saved.get("omnigent_server_url", "http://localhost:6767")
     click.echo("Status: Configured")
     click.echo(f"Bot Username: @{username}")
     click.echo(f"Server URL: {url}")
@@ -159,7 +159,7 @@ def telegram_cli() -> None:
 
 @telegram_cli.command("setup")
 @click.option("--token", help="Telegram Bot API token.")
-@click.option("--server-url", default="http://localhost:8000", help="Omnigent server URL.")
+@click.option("--server-url", default="http://localhost:6767", help="Omnigent server URL.")
 def setup_cmd(token: str | None, server_url: str) -> None:
     """Register and configure the Telegram bot."""
     _do_setup(token, server_url)
@@ -167,7 +167,7 @@ def setup_cmd(token: str | None, server_url: str) -> None:
 
 @telegram_cli.command("register")
 @click.option("--token", help="Telegram Bot API token.")
-@click.option("--server-url", default="http://localhost:8000", help="Omnigent server URL.")
+@click.option("--server-url", default="http://localhost:6767", help="Omnigent server URL.")
 def register_cmd(token: str | None, server_url: str) -> None:
     """Alias for setup: register and configure the Telegram bot."""
     _do_setup(token, server_url)
