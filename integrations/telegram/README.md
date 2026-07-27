@@ -13,7 +13,7 @@ Set the following environment variables (or configure via a `.env` file):
 
 ```bash
 TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
-OMNIGENT_SERVER_URL="http://localhost:8000"
+OMNIGENT_SERVER_URL="http://localhost:6767"
 SQLITE_DB_PATH="~/.omnigent/telegram_sessions.db"
 ```
 

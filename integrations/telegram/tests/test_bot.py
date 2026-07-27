@@ -13,7 +13,7 @@ def test_telegram_config_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path: Pat
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "12345:ABC-DEF1234ghIkl-zyx57W2v1u123ew11")
     config = TelegramConfig()
     assert config.telegram_bot_token == "12345:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-    assert config.omnigent_server_url == "http://localhost:8000"
+    assert config.omnigent_server_url == "http://localhost:6767"
 
 
 def test_build_elicitation_keyboard_binary(

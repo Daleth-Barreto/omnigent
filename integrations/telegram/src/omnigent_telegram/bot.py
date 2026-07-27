@@ -65,7 +65,7 @@ class OmnigentTelegramBot:
         await self.initialize()
         app = self.build_application()
         logger.info("Starting Omnigent Telegram Bot polling...")
-        await app.run_polling()
+        await app.run_polling(close_loop=False)
 
     async def cmd_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: ARG002
         """Handler for /start command."""
