@@ -25,7 +25,7 @@ def main() -> None:
 
     bot = OmnigentTelegramBot(config)
     try:
-        asyncio.run(bot.start())
+        bot.start()
     except KeyboardInterrupt:
         logging.info("Telegram Bot shut down cleanly by user.")
     except Exception as exc:  # noqa: BLE001

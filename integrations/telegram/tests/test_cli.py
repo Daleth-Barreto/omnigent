@@ -131,7 +131,7 @@ def test_telegram_start(monkeypatch: pytest.MonkeyPatch, mock_config_path: Path)
         encoding="utf-8",
     )
 
-    async def mock_start(self: Any) -> None:
+    def mock_start(self: Any) -> None:
         pass
 
     monkeypatch.setattr("omnigent_telegram.cli.OmnigentTelegramBot.start", mock_start)

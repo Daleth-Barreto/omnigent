@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
@@ -121,7 +120,7 @@ def _do_start() -> None:
 
     click.echo(f"Starting Telegram bot @{username}... Press Ctrl+C to stop.")
     try:
-        asyncio.run(bot.start())
+        bot.start()
     except KeyboardInterrupt:
         click.echo("\nStopped Telegram bot.")
 
