@@ -1,0 +1,57 @@
+# Daleth Agent — Development assistant with isolated external MCP tools.
+#
+# This example agent wires official MCP servers for:
+#   - Playwright (@playwright/mcp) for browser automation & web navigation.
+#   - Context7 (@upstash/context7-mcp) for up-to-date documentation & code context.
+#
+# Prerequisites:
+#   - Node.js (v20+) and `npx` on PATH.
+#
+# Usage:
+#   omnigent run examples/daleth_agent
+
+spec_version: 1
+name: daleth_agent
+description: >-
+  A development assistant that uses isolated external tools: Playwright for
+  web navigation and E2E verification, and Context7 for up-to-date documentation.
+
+executor:
+  type: omnigent
+  config:
+    harness: claude-sdk
+
+tools:
+  # Context7: Official MCP server — up-to-date library documentation & code context
+  context7:
+    type: mcp
+    command: npx
+    args: ["-y", "@upstash/context7-mcp@latest"]
+
+  # Playwright: Official MCP server — browser automation & web interaction
+  playwright:
+    type: mcp
+    command: npx
+    args: ["-y", "@playwright/mcp@latest"]
+
+os_env:
+  type: caller_process
+  cwd: .
+  sandbox:
+    type: none
+
+prompt: |
+  Eres un agente de desarrollo inteligente (daleth_agent). Cuentas con herramientas externas
+  aisladas de alto rendimiento ejecutándose mediante el Model Context Protocol (MCP):
+
+  - `context7`: Utilízalo siempre que necesites consultar documentación actualizada, guías de migración,
+    o ejemplos de código oficiales de cualquier librería o framework. No adivines APIs de versiones recientes;
+    consulta Context7 primero.
+  - `playwright`: Utilízalo para automatizar el navegador, navegar por páginas web, inspeccionar elementos,
+    hacer clic, escribir texto y tomar capturas de pantalla para verificar tus implementaciones o investigar fallos.
+
+  Reglas clave:
+  1. Mantén siempre la estabilidad del código base y la arquitectura de aislamiento.
+  2. Si una herramienta externa (MCP) falla o no responde, maneja el error con gracia y explícaselo
+     al usuario sin interrumpir abruptamente el flujo de trabajo.
+  3. Para tareas de interfaz web o E2E, verifica tus cambios usando `playwright` cuando sea posible.
