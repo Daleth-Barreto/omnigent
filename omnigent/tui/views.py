@@ -86,6 +86,11 @@ class TerminalPane(Container):
     }
     """
 
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._output_buffer = ""
+        self._flush_timer: Any = None
+
     def compose(self) -> ComposeResult:
         yield Label("[bold green]Terminal Output (Active Pane)[/bold green]", id="pane-title")
         yield RichLog(id="terminal-log", highlight=True, markup=True)
@@ -95,15 +100,38 @@ class TerminalPane(Container):
         )
 
     def write_ansi(self, text: str) -> None:
-        """Append ANSI text to the log viewer."""
+        """Append ANSI text to the log viewer, coalescing incomplete lines."""
         log_widget = self.query_one("#terminal-log", RichLog)
         if "[" in text and "/" in text and any(tag in text for tag in ("bold", "green", "red", "yellow", "cyan", "dim")):
             log_widget.write(text)
-        else:
-            log_widget.write(Text.from_ansi(text.rstrip()))
+            return
+
+        self._output_buffer += text
+        if "\n" in self._output_buffer:
+            lines = self._output_buffer.split("\n")
+            for line in lines[:-1]:
+                log_widget.write(Text.from_ansi(line.rstrip("\r")))
+            self._output_buffer = lines[-1]
+            if self._flush_timer:
+                self._flush_timer.stop()
+                self._flush_timer = None
+
+        if self._output_buffer and not self._flush_timer:
+            self._flush_timer = self.set_timer(0.05, self._flush_pending_buffer)
+
+    def _flush_pending_buffer(self) -> None:
+        if self._output_buffer:
+            log_widget = self.query_one("#terminal-log", RichLog)
+            log_widget.write(Text.from_ansi(self._output_buffer.rstrip("\r")))
+            self._output_buffer = ""
+        self._flush_timer = None
 
     def clear_pane(self) -> None:
         """Clear the terminal log view."""
+        self._output_buffer = ""
+        if self._flush_timer:
+            self._flush_timer.stop()
+            self._flush_timer = None
         log_widget = self.query_one("#terminal-log", RichLog)
         log_widget.clear()
 

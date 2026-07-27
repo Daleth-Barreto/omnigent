@@ -102,8 +102,8 @@ class Win32ConPtyBackend(TerminalBackend):
             raise RuntimeError(f"Win32 session {session_key} is not running.")
         proc: subprocess.Popen[Any] = inst["process"]
         if proc.stdin and text:
-            payload = text if text.endswith("\n") else text + "\n"
-            proc.stdin.write(payload.encode("utf-8") if isinstance(payload, str) else payload)
+            clean_text = text.rstrip("\r\n") + "\r\n"
+            proc.stdin.write(clean_text.encode("utf-8") if isinstance(clean_text, str) else clean_text)
             proc.stdin.flush()
 
     def capture_pane(self, session_key: str, lines: int | None = None) -> str:
